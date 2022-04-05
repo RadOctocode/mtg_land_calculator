@@ -1,11 +1,14 @@
 # main.py
 import sys
+import requests
 
-def find_card_cmc(card_name):
+def find_colored_pips(card_name):
     """
-        returns the cmc of the card given the name
+        returns a dict of colored pips
     """
-    return 0
+    response = requests.get("https://api.scryfall.com/cards/named?exact=Austere Command")
+    mana_cost = response.json()['mana_cost']
+    return mana_cost
 
 def remove_sideboards(line_list):
     """
@@ -31,6 +34,7 @@ def find_total_cmc(decklist):
         deck_lines = remove_sideboards(file.readlines())
         for line in deck_lines:
                 card_name = line.split(" ",1)[1]
+        print(find_colored_pips("test"))
         print("finished")
 
         return decklist
