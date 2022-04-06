@@ -48,7 +48,7 @@ def remove_sideboards(line_list):
     return return_value
 
 
-def find_total_cmc(decklist):
+def find_total_cmc(decklist, format_limit):
     """
         takes decklist
         returns dict of color pips and their totals
@@ -66,7 +66,15 @@ def find_total_cmc(decklist):
                     total_deck_pips += card_total_pips
                 sleep(0.1)
         
+        land_slots_remaining =format_limit - len(deck_lines)
+        for key in total_deck_dict:
 
+            land_num = (total_deck_dict[key] / total_deck_pips) * land_slots_remaining
+            land_name = VALID_COLOR[key]
+
+            if land_num!= 0:
+                print(land_num)
+                print(land_name)
         return decklist
     
 
@@ -75,7 +83,7 @@ if __name__ == "__main__":
     try:
         decklist_path = sys.argv[1]
         format_limit = int(sys.argv[2])
-        find_total_cmc(sys.argv[1])
+        find_total_cmc(decklist_path, format_limit)
     except IndexError:
         print("python3 main.py <decklist_path> <format_card_limit>")
         exit()
