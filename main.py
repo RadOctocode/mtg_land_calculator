@@ -51,6 +51,33 @@ def remove_sideboards(line_list):
 
     return return_value
 
+def calculate_remainder(remainder, land_count_dict):
+    """
+        takes remaining cards and the color dictionary
+        splits and calculates the remainder
+    """
+    min_lands = inf
+    min_key = ""
+    for key in land_count_dict:
+        land_count_dict[key] += additional_cards
+        if land_count_dict[key] < min_lands:
+            min_lands = land_count_dict[key]
+            min_key = key
+            land_count_dict[min_key] += extra_rm
+
+        elif remainder < 0:
+            # remove an even amount from every color favor the color with the most amount
+            max_lands = 0
+            max_key = ""
+
+            for key in land_count_dict:
+                land_count_dict[key] -= additional_cards
+                if land_count_dict[key] > max_lands:
+                    max_lands = land_count_dict[key]
+                    max_key = key
+            land_count_dict[max_key] -= extra_rm
+
+    return 0
 
 def find_total_cmc(decklist, format_limit):
     """
