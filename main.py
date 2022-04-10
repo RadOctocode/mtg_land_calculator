@@ -51,33 +51,39 @@ def remove_sideboards(line_list):
 
     return return_value
 
+
 def calculate_remainder(remainder, land_count_dict):
     """
         takes remaining cards and the color dictionary
         splits and calculates the remainder
     """
-    min_lands = inf
-    min_key = ""
-    for key in land_count_dict:
-        land_count_dict[key] += additional_cards
-        if land_count_dict[key] < min_lands:
-            min_lands = land_count_dict[key]
-            min_key = key
-            land_count_dict[min_key] += extra_rm
+    total_colors = len(land_count_dict)
+    additional_cards = remainder // total_colors
+    extra_rm = remainder % total_colors
 
-        elif remainder < 0:
-            # remove an even amount from every color favor the color with the most amount
-            max_lands = 0
-            max_key = ""
+    if remainder > 0:
+        min_lands = inf
+        min_key = ""
+        for key in land_count_dict:
+            land_count_dict[key] += additional_cards
+            if land_count_dict[key] < min_lands:
+                min_lands = land_count_dict[key]
+                min_key = key
+        land_count_dict[min_key] += extra_rm
 
-            for key in land_count_dict:
-                land_count_dict[key] -= additional_cards
-                if land_count_dict[key] > max_lands:
-                    max_lands = land_count_dict[key]
-                    max_key = key
-            land_count_dict[max_key] -= extra_rm
+    elif remainder < 0:
+        max_lands = 0
+        max_key = ""
 
-    return 0
+        for key in land_count_dict:
+            land_count_dict[key] -= additional_cards
+            if land_count_dict[key] > max_lands:
+                max_lands = land_count_dict[key]
+                max_key = key
+        land_count_dict[max_key] -= extra_rm
+
+    return land_count_dict
+
 
 def find_total_cmc(decklist, format_limit):
     """
@@ -111,34 +117,8 @@ def find_total_cmc(decklist, format_limit):
 
             remainder = land_slots_remaining - found_lands
             if remainder != 0:
-                # remove an even amount from every color favor the color with the most amount
-
-                total_colors = len(land_count_dict)
-                additional_cards = remainder//total_colors
-                extra_rm = remainder % total_colors
-
-                if remainder > 0:
-                    # add an equal amount to every color favor the color with the least amount
-                    min_lands = inf
-                    min_key = ""
-                    for key in land_count_dict:
-                        land_count_dict[key] += additional_cards
-                        if land_count_dict[key] < min_lands:
-                            min_lands = land_count_dict[key]
-                            min_key = key
-                    land_count_dict[min_key] += extra_rm
-
-                elif remainder < 0:
-                    # remove an even amount from every color favor the color with the most amount
-                    max_lands = 0
-                    max_key = ""
-
-                    for key in land_count_dict:
-                        land_count_dict[key] -= additional_cards
-                        if land_count_dict[key] > max_lands:
-                            max_lands = land_count_dict[key]
-                            max_key = key
-                    land_count_dict[max_key] -= extra_rm
+                land_count_dict = calculate_remainder(
+                    remainder, land_count_dict)
             return land_count_dict
     except FileNotFoundError:
         print("filepath incorrect")
