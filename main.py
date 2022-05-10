@@ -9,14 +9,10 @@ VALID_COLOR = {"W": "Plains", "U": "Island", "B": "Swamp",
                "R": "Mountain", "G": "Forest", "C": "Wastes"}
 
 
-def find_colored_pips(card_name):
+def find_colored_pips(mana_cost):
     """
         returns a dict of colored pips
     """
-    response = requests.get(
-        "https://api.scryfall.com/cards/named?exact="+card_name)
-
-    mana_cost = response.json()['mana_cost'].strip()
     mana_cost = mana_cost.replace("{", " ")
     mana_cost = mana_cost.replace("}", " ")
     mana_cost = mana_cost.replace("/", " ")
@@ -25,7 +21,6 @@ def find_colored_pips(card_name):
 
     return_dict = dict()
     return_total = 0
-
     for value in mana_cost_list:
         if value in VALID_COLOR:
             if value in return_dict:
@@ -33,9 +28,36 @@ def find_colored_pips(card_name):
             else:
                 return_dict[value] = 1
             return_total += 1
-
     return return_total, return_dict
 
+def process_card(card_name):
+    """
+        returns total number of pips and a dict of colored pips
+    """
+    response = requests.get(
+        "https://api.scryfall.com/cards/named?exact="+card_name)
+    if response.status_code == 200: 
+        response_json = response.json()
+        
+        if "card_faces" in response_json:
+            #deal with both card faces
+            total_1, dict_1 = find_colored_pips(response_json['card_faces'][0]['mana_cost'].strip())
+            total_2, dict_2 = find_colored_pips(response_json['card_faces'][1]['mana_cost'].strip())
+            ret_total = total_1 + total_2
+            for key in dict_1:
+                if key in dict_2:
+                    dict_2[key] += dict_1[key]
+                else:
+                    dict_2[key] = dict_1[key]
+
+            return ret_total, dict_2
+
+        else:
+            return find_colored_pips(response.json()['mana_cost'].strip())
+
+    else:
+        print("couldn't find card named: " + card_name)
+        exit()
 
 def remove_sideboards(line_list):
     """
@@ -50,7 +72,6 @@ def remove_sideboards(line_list):
         return_value.append(line.strip())
 
     return return_value
-
 
 def calculate_remainder(remainder, land_count_dict):
     """
@@ -84,7 +105,6 @@ def calculate_remainder(remainder, land_count_dict):
 
     return land_count_dict
 
-
 def find_total_cmc(decklist, format_limit):
     """
         takes decklist
@@ -99,7 +119,7 @@ def find_total_cmc(decklist, format_limit):
 
             for line in deck_lines:
                 card_name = line.split(" ", 1)[1]
-                card_total_pips, card_pip_dict = find_colored_pips(card_name)
+                card_total_pips, card_pip_dict = process_card(card_name)
                 for key in card_pip_dict:
                     total_deck_dict[key] += card_pip_dict[key]
                     total_deck_pips += card_total_pips
@@ -123,7 +143,6 @@ def find_total_cmc(decklist, format_limit):
     except FileNotFoundError:
         print("filepath incorrect")
         exit()
-
 
 if __name__ == "__main__":
     try:
